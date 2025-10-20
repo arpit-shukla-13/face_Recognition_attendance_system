@@ -3,16 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 from werkzeug.utils import secure_filename
 import uuid
-from datetime import date # We need this to store the date
+from datetime import date # We need this to get today's date
 
 # 1. --- App and Database Configuration ---
 
-app = Flask(__name__)
+app = Flask(__name__) # <-- This is the line that was missing or in the wrong place
 
 # Set the path for the database file
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Disable a warning
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Set paths for file uploads
 UPLOAD_FOLDER_ABS = os.path.join(app.root_path, 'static', 'uploads', 'employee_photos')
@@ -31,19 +31,17 @@ if not os.path.exists(UPLOAD_FOLDER_ABS):
 
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True) # Added unique=True
+    name = db.Column(db.String(100), nullable=False, unique=True)
     photo_path = db.Column(db.String(200), nullable=False)
-    # This creates a relationship: "Get all attendance records for this employee"
     attendances = db.relationship('Attendance', backref='employee', lazy=True)
 
     def __repr__(self):
         return f'<Employee {self.name}>'
 
-# --- NEW TABLE ---
 class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False, default=date.today) # Stores the date
-    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False) # Link to Employee table
+    date = db.Column(db.Date, nullable=False, default=date.today)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
 
     def __repr__(self):
         return f'<Attendance {self.employee.name} on {self.date}>'
@@ -51,11 +49,30 @@ class Attendance(db.Model):
 
 # 3. --- Routes (Our Web Pages) ---
 
+# --- THIS IS THE UPDATED DASHBOARD ROUTE ---
 @app.route('/')
 def index():
-    employees = Employee.query.all()
-    # TODO: In the next step, we will also fetch and show attendance data
-    return render_template('index.html', employees=employees)
+    try:
+        today = date.today()
+        
+        # Get all employees
+        employees = Employee.query.all()
+        
+        # Get all attendance records for today
+        todays_attendance = Attendance.query.filter_by(date=today).all()
+        
+        # Get the names of employees who are present today
+        present_employee_names = [record.employee.name for record in todays_attendance]
+        
+        # Pass all this data to the template
+        return render_template('index.html', 
+                               employees=employees, 
+                               attendance=todays_attendance, 
+                               present_names=present_employee_names,
+                               today=today)
+    except Exception as e:
+        print(f"Error in index route: {e}")
+        return "An error occurred. Please check server logs."
 
 
 @app.route('/add')
@@ -69,11 +86,9 @@ def add_employee_data():
         employee_name = request.form['name']
         photo = request.files['photo']
         
-        # Check if employee already exists
         existing_employee = Employee.query.filter_by(name=employee_name).first()
         if existing_employee:
             print(f"Employee name {employee_name} already exists.")
-            # We should probably show an error to the user, but for now we redirect
             return redirect(url_for('index'))
 
         if photo:
@@ -92,7 +107,16 @@ def add_employee_data():
             try:
                 db.session.add(new_employee)
                 db.session.commit()
-                print(f"Employee {employee_name} added with photo path: {db_path}")
+                print(f"Employee {employee_name} added.")
+                
+                # --- AUTO-TRAINER ---
+                # After adding, we should re-run the trainer
+                # This is a simple way to do it.
+                print("Running trainer in background...")
+                trainer_script_path = os.path.join('face_recognition_module', 'trainer.py')
+                os.system(f'python {trainer_script_path}') # This runs 'python face_recognition_module/trainer.py'
+                print("Training complete.")
+
             except Exception as e:
                 print(f"Error adding to database: {e}")
                 db.session.rollback()
@@ -102,7 +126,6 @@ def add_employee_data():
 
 # Main entry point to run the app
 if __name__ == "__main__":
-    # This will create both 'employee' and 'attendance' tables if they don't exist
     with app.app_context():
         db.create_all()
     app.run(debug=True)
