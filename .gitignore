@@ -1,0 +1,23 @@
+# Python Virtual Environment
+venv/
+
+# Database file
+database.db
+*.sqlite
+*.sqlite3
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Sensitive Employee Photos
+# Hum folder rakhenge, par andar ki files ignore karenge
+static/uploads/employee_photos/*
+!static/uploads/employee_photos/.gitkeep
+
+# Trained model file
+face_recognition_module/encodings.pickle
+
+# OS / Editor specific files
+.DS_Store
+.vscode/
