@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attendance</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; }
+        .navbar { background-color: #ffffff; overflow: hidden; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .navbar a { float: left; display: block; color: #333; text-align: center; padding: 14px 20px; text-decoration: none; font-size: 1.1em; }
+        .navbar a:hover { background-color: #f4f4f4; }
+        /* Admin login link on the right */
+        .navbar a.admin-login { float: right; background-color: #007BFF; color: white; }
+        .navbar a.admin-login:hover { background-color: #0056b3; }
+        
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        
+        /* Search Bar Style */
+        .search-container { text-align: center; margin-bottom: 30px; }
+        .search-container input[type=text] {
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        .search-container button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .search-container button:hover { background-color: #218838; }
+
+        /* Employee Grid Style */
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .employee-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+        .employee-card:hover { transform: translateY(-5px); }
+        .employee-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #eee;
+        }
+        .employee-card .name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .status {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .status-present { color: #28a745; }
+        .status-absent { color: #dc3545; }
+        .no-results { text-align: center; color: #777; font-size: 1.2em; }
+
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="active">Employee Dashboard</a>
+        <a href="{{ url_for('admin_login') }}" class="admin-login">Admin Login</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Employee Attendance Status</h1>
+            <p>Today: {{ today.strftime('%B %d, %Y') }}</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <form method="GET" action="/">
+                <input type="text" name="search" placeholder="Search by name..." value="{{ search_query }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <!-- Employee List -->
+        <div class="employee-grid">
+            {% if employees %}
+                {% for employee in employees %}
+                    <div class="employee-card">
+                        <img src="{{ url_for('static', filename=employee.photo_path) }}" alt="Photo of {{ employee.name }}">
+                        <div class="name">{{ employee.name }}</div>
+                        
+                        <!-- Status Check -->
+                        {% if employee.name in present_names %}
+                            <div class="status status-present">Present</div>
+                        {% else %}
+                            <div class="status status-absent">Absent</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-results">No employees found matching '{{ search_query }}'.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>
