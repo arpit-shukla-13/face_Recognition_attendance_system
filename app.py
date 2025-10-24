@@ -269,8 +269,32 @@ def admin_edit_employee(employee_id):
 
 @app.route('/')
 def user_dashboard():
-    # TODO: Yahan hum user ka search/view page banayenge
-    return "User Dashboard - Under Construction. Admin login is at /admin/login"
+    try:
+        # Get the search query from the URL (e.g., /?search=rohan)
+        search_query = request.args.get('search', '') # Get 'search' parameter, default to empty string
+        
+        today = date.today()
+        
+        # Get today's attendance
+        todays_attendance = Attendance.query.filter_by(date=today).all()
+        present_employee_names = [record.employee.name for record in todays_attendance]
+        
+        # Get employees
+        if search_query:
+            # If there's a search, filter employees by name
+            employees = Employee.query.filter(Employee.name.ilike(f'%{search_query}%')).all()
+        else:
+            # If no search, get all employees
+            employees = Employee.query.all()
+            
+        return render_template('user_dashboard.html', 
+                               employees=employees,
+                               present_names=present_employee_names,
+                               search_query=search_query,
+                               today=today)
+    except Exception as e:
+        print(f"Error in user_dashboard route: {e}")
+        return "An error occurred. Please check logs."
 
 
 # 7. --- Run the App ---
@@ -278,4 +302,5 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
