@@ -43,7 +43,6 @@ except FileNotFoundError:
 
 # --- 3. Initialize the Webcam ---
 
-# === THIS IS THE FIX ===
 # Trying camera index 1 instead of 0
 video_capture = cv2.VideoCapture(1)
 # === END OF FIX ===
