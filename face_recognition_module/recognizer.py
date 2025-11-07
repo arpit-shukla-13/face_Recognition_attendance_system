@@ -48,6 +48,8 @@ except FileNotFoundError:
 video_capture = cv2.VideoCapture(1)
 # === END OF FIX ===
 
+
+
 # Check if camera opened successfully
 if not video_capture.isOpened():
     print("Error: Could not open camera at index 1. Trying index 0...")
