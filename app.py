@@ -10,6 +10,7 @@ from functools import wraps # We need this to create the 'Guard'
 
 # 1. --- App and Database Configuration ---
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database.db')
