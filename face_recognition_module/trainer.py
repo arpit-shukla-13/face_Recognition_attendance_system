@@ -88,4 +88,4 @@ try:
         f.write(pickle.dumps(data))
     print(f"\nTraining complete. Encodings saved to '{encodings_file_path}'")
 except Exception as e:
-    print(f"Error saving pickle file: {e}")
+    print(f"Error saving pickle file: {e}") 
