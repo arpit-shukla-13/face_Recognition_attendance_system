@@ -8,7 +8,7 @@ import sys
 # --- 1. Database Connection ---
 print("Connecting to database...")
 
-# Add the parent directory (main project folder) to the system path
+
 # This allows us to import 'app.py' and its models
 parent_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(parent_dir)
